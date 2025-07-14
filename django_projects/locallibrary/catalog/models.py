@@ -128,4 +128,3 @@ class Author(models.Model):
         """Chuỗi đại diện cho đối tượng Author."""
         return f'{self.last_name}, {self.first_name}'
 
-

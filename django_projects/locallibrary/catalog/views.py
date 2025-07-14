@@ -1,23 +1,20 @@
-from django.shortcuts import render
-
-# Create your views here.
+from django.shortcuts import render, get_object_or_404
+from django.views import generic
 from catalog.models import Book, Author, BookInstance, Genre
-from catalog.constants import LoanStatus
+from catalog.constants import LoanStatus, DEFAULT_PAGINATION
 
 
 def index(request):
     """Hàm view cho trang chủ của website."""
 
-    # Tạo thống kê số lượng cho một số đối tượng chính
     num_books = Book.objects.count()
     num_instances = BookInstance.objects.count()
-    
-    # Sách có sẵn (status = 'a')
-    num_instances_available = BookInstance.objects.filter(
-        status=LoanStatus.AVAILABLE.value
-    )
 
-# Hàm all() được ngầm định mặc định
+    # Sách có sẵn (AVAILABLE)
+    num_instances_available = BookInstance.objects.filter(
+        status__exact=LoanStatus.AVAILABLE.value
+    ).count()
+
     num_authors = Author.objects.count()
 
     context = {
@@ -27,5 +24,44 @@ def index(request):
         'num_authors': num_authors,
     }
 
-# Trả về file HTML template index.html với dữ liệu trong biến context
     return render(request, 'index.html', context=context)
+
+
+class BookListView(generic.ListView):
+    model = Book
+    paginate_by = DEFAULT_PAGINATION
+
+
+
+class BookDetailView(generic.DetailView):
+    model = Book
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        book = self.object
+        instances = book.bookinstance_set.all()
+
+        # Gán class CSS tương ứng theo status
+        for copy in instances:
+            if copy.status == LoanStatus.AVAILABLE.value:
+                copy.css_class = 'text-success'
+            elif copy.status == LoanStatus.MAINTENANCE.value:
+                copy.css_class = 'text-danger'
+            else:
+                copy.css_class = 'text-warning'
+
+        context['book_instances'] = instances
+        context['AVAILABLE'] = LoanStatus.AVAILABLE.value
+        context['can_mark_returned'] = self.request.user.has_perm(
+            "catalog.can_mark_returned"
+        )
+        return context
+
+    def book_detail_view(self, primary_key):
+        """Hàm mô phỏng xử lý FBV trong class"""
+        book = get_object_or_404(Book, pk=primary_key)
+        return render(
+            self.request,
+            'catalog/book_detail.html',
+            context={'book': book}
+        )

@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Author, Genre, Book, BookInstance
 
+
 admin.site.register(Genre)
 
 # Định nghĩa lớp quản trị
@@ -28,7 +29,6 @@ class BooksInstanceInline(admin.TabularInline):
     model = BookInstance
 
 # Đăng ký lớp quản trị cho Book bằng decorator
-
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
