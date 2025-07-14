@@ -65,6 +65,7 @@ class Book(models.Model):
         )
     display_genre.short_description = "Genre"
 
+
 class BookInstance(models.Model):
     """Model đại diện cho một bản sao cụ thể của sách (có thể được mượn)."""
 

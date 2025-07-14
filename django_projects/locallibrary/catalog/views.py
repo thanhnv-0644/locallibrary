@@ -1,5 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.views import generic
+from django.shortcuts import render
+from django.shortcuts import get_object_or_404
 from catalog.models import Book, Author, BookInstance, Genre
 from catalog.constants import LoanStatus, DEFAULT_PAGINATION
 
@@ -14,23 +16,25 @@ def index(request):
     num_instances_available = BookInstance.objects.filter(
         status__exact=LoanStatus.AVAILABLE.value
     ).count()
-
     num_authors = Author.objects.count()
+
+    # Lấy và cập nhật số lượt truy cập
+    num_visits = request.session.get('num_visits', 1)
+    request.session['num_visits'] = num_visits + 1
 
     context = {
         'num_books': num_books,
         'num_instances': num_instances,
         'num_instances_available': num_instances_available,
         'num_authors': num_authors,
+        'num_visits': num_visits,
     }
-
     return render(request, 'index.html', context=context)
 
 
 class BookListView(generic.ListView):
     model = Book
     paginate_by = DEFAULT_PAGINATION
-
 
 
 class BookDetailView(generic.DetailView):
