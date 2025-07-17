@@ -10,6 +10,8 @@ from .constants import (
     MAX_LENGTH_SUMMARY,
     MAX_LENGTH_ISBN,
     MAX_LENGTH_IMPRINT,
+    DISPLAY_GENRE_LIMIT,
+
 )
 
 
@@ -54,7 +56,15 @@ class Book(models.Model):
 
     def get_absolute_url(self):
         return reverse('book-detail', args=[str(self.id)])
-
+    def display_genre(self):
+        """
+        Creates a string for the Genre.
+        This is required to display genre in Admin.
+        """
+        return ", ".join(
+            genre.name for genre in self.genre.all()[:DISPLAY_GENRE_LIMIT]
+        )
+    display_genre.short_description = "Genre"
 
 class BookInstance(models.Model):
     """Model đại diện cho một bản sao cụ thể của sách (có thể được mượn)."""
@@ -116,3 +126,5 @@ class Author(models.Model):
 
     def __str__(self):
         return f'{self.last_name}, {self.first_name}'
+
+
