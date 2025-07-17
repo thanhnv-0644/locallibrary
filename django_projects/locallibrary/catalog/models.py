@@ -14,7 +14,6 @@ from .constants import (
 
 )
 
-
 class Genre(models.Model):
     """Model đại diện cho thể loại sách."""
 
@@ -122,9 +121,11 @@ class Author(models.Model):
         ordering = ['last_name', 'first_name']
 
     def get_absolute_url(self):
+        """Trả về URL để truy cập chi tiết tác giả này."""
         return reverse('author-detail', args=[str(self.id)])
 
     def __str__(self):
+        """Chuỗi đại diện cho đối tượng Author."""
         return f'{self.last_name}, {self.first_name}'
 
 
