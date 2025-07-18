@@ -3,7 +3,8 @@ from django.views import generic
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from catalog.models import Book, Author, BookInstance, Genre
-from catalog.constants import LoanStatus, DEFAULT_PAGINATION
+from django.contrib.auth.mixins import LoginRequiredMixin
+from catalog.constants import LoanStatus, DEFAULT_PAGINATION, PAGINATE_BY
 
 
 def index(request):
@@ -41,6 +42,7 @@ class BookDetailView(generic.DetailView):
     model = Book
 
     def get_context_data(self, **kwargs):
+
         context = super().get_context_data(**kwargs)
         book = self.object
         instances = book.bookinstance_set.all()
@@ -68,4 +70,17 @@ class BookDetailView(generic.DetailView):
             self.request,
             'catalog/book_detail.html',
             context={'book': book}
+        )
+
+
+class LoanedBooksByUserListView(LoginRequiredMixin, generic.ListView):
+    model = BookInstance
+    template_name = 'catalog/bookinstance_list_borrowed_user.html'
+    paginate_by = PAGINATE_BY
+
+    def get_queryset(self):
+        return (
+            BookInstance.objects.filter(borrower=self.request.user)
+            .filter(status__exact=LoanStatus.ON_LOAN.value)
+            .order_by("due_back")
         )
